@@ -1,0 +1,68 @@
+{{define "title"}} | Edit Comment{{end}}
+
+{{define "content"}}
+<main>
+    <section class="row">
+        <section class="w3-5">
+            <article class="post">
+                <img src="{{ .Post.ImageURL }}" alt="">
+                <h1>{{ .Post.Title }}</h1>
+                <div class="row mb-1">
+                    {{ range .CategoriesPost }}
+                    <a href="/category/{{.Name}}">#{{ .Name }}</a>
+                    {{ end }}
+                </div>
+                <p class="black mb-1">
+                    {{ .Post.Description }}
+                </p>
+                <div class="row">
+                    <p>Published {{.Post.ModifiedDate}}</p>
+                </div>
+            </article>
+        </section>
+        <section class="w2-5 col">
+            <div class="row center mb-1">
+                <p class="mr-1">
+                    {{ .NbrLike }}
+                    {{if .IsLoggedIn}}
+                    <a href="/like/{{ .Post.Slug }}">
+                        ❤️
+                    </a>
+                    {{else}}
+                        <a href="/sign-in-page">❤️</a>
+                    {{end}}
+                </p>
+                <p class="mr-1">
+                    {{ .NbrDislike }}
+                    {{if .IsLoggedIn}}
+                    <a href="/dislike/{{ .Post.Slug }}">
+                        👎
+                    </a>
+                    {{else}}
+                        <a href="/sign-in-page">👎</a>
+                    {{end}}
+                </p>
+                <p>
+                    Mark
+                    <a href="#">
+                        🔖
+                    </a>
+                </p>
+            </div>
+            {{if .IsLoggedIn}}
+            <div class="col block mb-1 wfull">
+                <p id="replyMessage" style="display: none;"></p>
+                <form action="/edit-comment/{{.Comment.ID}}" method="POST" class="wfull m-0">
+                    <input type="hidden" name="parentID" id="parentID">
+                    <textarea name="text" id="" cols="30" rows="5" required>{{.Comment.Text}}</textarea>
+                    <div class="row center mb-0">
+                        <button>Comment</button>
+                        <p class="mb-0 ml-1">Use @ to mention other users</p>
+                    </div>
+                </form>
+            </div>
+            {{end}}
+        </section>
+    </section>
+</main>
+{{end}}

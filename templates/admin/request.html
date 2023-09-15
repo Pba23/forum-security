@@ -1,0 +1,97 @@
+{{define "title"}} | Admin{{end}}
+
+{{define "content"}}
+<h2 style="padding: 20px;top :0px;">Requests</h2>
+{{range .Requests}}
+<div style="background-color: rgb(231, 236, 238);border-radius: 20px;" class="request">
+    <div>
+        <img src="{{.ImageURL}}" alt="logo Requet" class="avatar big mr-1">
+    </div>
+    <a href="user/{{.Username}}">
+    <div>
+        <h2>{{.Username}}</h2>
+    </div>
+    </a>
+    <div class="buttonsRequest">
+        {{if eq .Role 2}}
+        <a class="DeleteRequest" href="/invalidate/{{.AuthorID}}"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 384 512"><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg></a>
+        <a class="ValidateRequest" href="/validate/{{.AuthorID}}"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg></a>
+        {{else}}
+        <p class="valide">Moderator</p>
+        {{end}}
+    </div>
+</div>
+{{end}}
+<style>
+    .valide {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 90px;
+        height: 40px;
+        border: 1px solid rgb(0, 0, 0);
+        border-radius: 10px;
+        color: rgb(34, 19, 19);
+        font-size: 15px;
+        font-weight: bold;
+    }
+    .request {
+        display: flex;
+        flex-direction: row;
+        width: 700px;
+        height: 100px;
+        border-radius: 100px;
+        justify-content: space-between;
+        align-items: center;
+        margin: 10px;
+        padding-right: 20px;
+        padding-left: 20px;
+    }
+    .buttonsRequest {
+        display: flex;
+        flex-direction: row;
+        margin-left:30px;
+        justify-content: space-evenly;
+        right: 0px;
+        float: right;
+    }
+
+    
+    .DeleteRequest {
+        display: flex;
+        margin-left: 20px;
+        flex-direction: column;
+        border-radius: 20px;
+        border: 1px solid rgb(226, 10, 10);
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+    }
+    .ValidateRequest {
+        display: flex;
+        margin-left: 20px;
+        flex-direction: column;
+        border-radius: 20px;
+        border: 1px solid rgb(14, 221, 7);
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+        color: rgb(46, 211, 46);
+    }
+    .ValidateRequest:hover {
+        background-color: rgb(11, 197, 82);
+        transition: 0.5s;
+    }
+
+    .DeleteRequest:hover {
+        background-color: rgb(199, 20, 7);
+        transition: 0.5s;
+    }
+    
+
+</style>
+{{end}}

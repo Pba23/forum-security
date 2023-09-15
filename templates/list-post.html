@@ -1,0 +1,57 @@
+{{define "title"}} | Trending{{end}}
+
+{{define "content"}}
+<main>
+    <section class="mt-1">
+        <section class="col w2-3 mr-1">
+            <div class="row wfull space-between mb-1">
+                <div class="col">
+                    {{if eq .Title ""}}
+                    <h1>Trending Posts</h1>
+                    {{else}}
+                    <h1>{{.Title}}</h1>
+                    {{end}}
+                    <p>View all {{ .NumberOfPosts }} discussions</p>
+                </div>
+                {{if .IsLoggedIn}}
+                <button onclick="openModal()">Create New Post</button>
+                {{else}}
+                <a href="/sign-in-page" class="btn">Create New Post</a>
+                {{end}}
+            </div>
+            <div class="col wfull mt-1 ml-1">
+                {{range .Post}}
+                <article class="list">
+                    <div class="row center">
+                        <img class="avatar big mr-1" src="{{ .ImageURL }}" alt="">
+                        <div class="col ml-1 new">
+                            <a class="black wfull" href="/posts/{{ .Slug }}">
+                                <h2>
+                                    {{ .Title }}
+                                </h2>
+                            </a>
+                            <div class="row">
+                                <span>{{ .AuthorName }}</span>
+                                <span>{{ .LastEditionDate }}</span>
+                                <span>{{ .NumberOfComments }} replies</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="avatars">
+                        {{range .ListOfCommentator}}
+                        <img class="avatar" src="{{ . }}" alt="">
+                        {{end}}
+                    </div>
+                </article>
+                {{end}}
+                {{if eq .Title ""}}
+                {{if ne .Limit -1}}
+                <a href="/trending?limit={{ .Limit }}" class="btn alt">Load more</a>
+                {{end}}
+                {{end}}
+                
+            </div>
+        </section>
+    </section>
+</main>
+{{end}}

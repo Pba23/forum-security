@@ -1,0 +1,38 @@
+{{define "title"}} | Profile{{end}}
+
+{{define "content"}}
+<main>
+    <section class="wfull center">
+        <section class="w3-5 col">
+            <div class="row mb-1">
+                <img src="{{.Author.AvatarURL}}" alt="" class="avatar bigger">
+                <div class="col ml-1">
+                    <h2>{{.Author.Username}}</h2>
+                </div>
+            </div>
+            <h1>All Posts from {{.Author.Username}}:</h1>
+            <div class="col wfull mt-1">
+                {{range .PostsList}}
+                <article class="list">
+                    <div class="row center">
+                        <img class="avatar big mr-1" src="{{ .ImageURL }}" alt="">
+                        <div class="col ml-1 new">
+                            <a class="black wfull" href="/posts/{{ .Slug }}">
+                                <h2>
+                                    {{ .Title }}
+                                </h2>
+                            </a>
+                            <div class="row">
+                                <span>{{ .AuthorName }}</span>
+                                <span>{{ .LastEditionDate }}</span>
+                                <span>{{ .NumberOfComments }} replies</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {{end}}
+            </div>
+        </section>
+    </section>
+</main>
+{{end}}

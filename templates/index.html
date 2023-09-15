@@ -1,0 +1,105 @@
+{{define "title"}} | Home{{end}}
+
+{{define "content"}}
+<main>
+    <section class="center space-between w2-3">
+        <div class="col">
+            <h1 class="mb-1 w2-3">
+                Tell Your Story, the Unfiltered and Human Way
+            </h1>
+            <p class="mb-1 w2-3">
+                Tookapic is 365-day photo-sharing platform that encourages you to not only remember the extraordinary
+                days, but to also give thanks to the beautiful, ordinary days in between.
+            </p>
+            {{if .IsLoggedIn}}
+            {{if eq .CurrentUser.Role 0}}
+            <div class="row mt-1">
+                <a href="/requests" class="btn mr-1">See Requests</a>
+                <a href="/seeReports" class="btn mr-1">See Reports</a>
+            </div>
+            {{else if eq .CurrentUser.Role 1}}
+            <div class="row mt-1">
+                <a href="/posts" class="btn mr-1">See Request posts</a>
+            </div>
+            {{end}}
+            {{end}}
+        </div>
+        <div class="col">
+            <img class="hero" src="/img/community.webp">
+        </div>
+    </section>
+    <section class="space-between shadow mb-1">
+        {{range .RandomUsers}}
+        <a href="/user/{{.Username}}">
+            <img src="{{ .AvatarURL }}" class="avatar big">
+        </a>
+        {{end}}
+    </section>
+    <section class="mt-1">
+        <section class="col w2-3 mr-1">
+            <div class="row wfull space-between mb-1">
+                <div class="col">
+                    <h1>Discussions & Articles</h1>
+                    <p>View all {{ .NumberOfPosts }} discussions</p>
+                </div>
+                {{if .IsLoggedIn}}
+                <button onclick="openModal()">Create New Post</button>
+                {{else}}
+                <a href="/sign-in-page" class="btn">Create New Post</a>
+                {{end}}
+            </div>
+            <div class="col wfull mt-1 ml-1">
+                {{range .Post}}
+                <article class="list">
+                    <div class="row center">
+                        <img class="avatar big mr-1" src="{{ .ImageURL }}" alt="">
+                        <div class="col ml-1 new">
+                            <a class="black wfull" href="/posts/{{ .Slug }}">
+                                <h2>
+                                    {{ .Title }}
+                                </h2>
+                            </a>
+                            <div class="row">
+                                <span>
+                                    <a href="/user/{{.AuthorName}}">
+                                        {{ .AuthorName }}
+                                    </a>
+                                </span>
+                                <span>{{ .LastEditionDate }}</span>
+                                <span>{{ .NumberOfComments }} replies</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="avatars">
+                        {{range .ListOfCommentator}}
+                        <img class="avatar" src="{{ . }}" alt="">
+                        {{end}}
+                    </div>
+                </article>
+                {{end}}
+                {{if ne .Limit -1}}
+                <a href="/?limit={{ .Limit }}" class="btn alt">Load more</a>
+                {{end}}
+            </div>
+        </section>
+        <section class="col w1-3">
+            <h1>Top Streaks</h1>
+            <p class="mb-1">Take and publish photos consecutive days to earn your streak.</p>
+            {{ range .TopUsers }}
+            <div class="row center mb-1">
+                <img class="avatar small mr-1" src="{{.AvatarURL}}" alt="">
+                <p class="mr-1">
+                    <a href="/user/{{.Username}}">
+                        {{.Username}}
+                    </a>
+                </p>
+                <a href="#" class="mr-1">
+                    <span class="like"></span>
+                </a>
+                <span>{{.NumberOfReaction}}</span>
+            </div>
+            {{ end }}
+        </section>
+    </section>
+</main>
+{{end}}

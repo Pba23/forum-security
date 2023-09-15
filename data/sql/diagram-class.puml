@@ -1,0 +1,139 @@
+
+@startuml "user-class-diagram"
+skinparam shadowing false
+skinparam monochrome true
+skinparam component {
+    FontSize 20
+}
+
+frame "cl: Class Diagram - User" {
+    class user {
+        **id: UUID**
+        username: VARCHAR
+        email: VARCHAR
+        password: TEXT
+        avatarURL: VARCHAR
+        type: ROLE
+        token: TEXT
+        tokenExpirationDate: DATE
+    }
+
+    class post {
+        **id: UUID**
+        title: VARCHAR
+        description: VARCHAR
+        imageURL: VARCHAR
+        authorID: UUID
+        isEdited: BOOLEAN
+        createDate: DATE
+        modifiedDate: DATE
+    }
+
+    class report {
+        **id: UUID**
+        authorID: UUID
+        reportedID: UUID
+        cause: CAUSE
+        type: TYPE
+        createDate: DATE
+        modifiedDate: DATE
+    }
+
+    class response {
+        **id: UUID**
+        authorID: UUID
+        reportID: UUID
+        text: TEXT
+        createDate: DATE
+        modifiedDate: DATE
+    }
+
+    class view {
+        **id: UUID**
+        isBookmarked: BOOLEAN
+        rate: RATE
+        authorID: UUID
+        postID: UUID
+    }
+
+    class comment_view {
+        **id: UUID**
+        authorID: UUID
+        commentID: UUID
+        rate: RATE
+    }
+
+    class comment {
+        **id: UUID**
+        text: VARCHAR
+        authorID: UUID
+        postID: UUID
+        parentID: UUID
+        createDate: DATE
+        modifiedDate: DATE
+    }
+
+    class post_category {
+        **id: UUID**
+        categoryID: UUID
+        postID: UUID
+    }
+
+    class category {
+        **id: UUID**
+        name: VARCHAR
+        createDate: DATE
+        modifiedDate: DATE
+    }
+
+    class notification {
+        **id: UUID**
+        AuthorID: VARCHAR
+        PostID: VARCHAR
+        PostOwnerID VARCHAR
+        Read BOOLEAN
+        Notif_type VARCHAR
+        Time VARCHAR
+    }
+
+    enum RATE {
+        NONE
+        LIKE
+        DISLIKE
+    }
+
+    enum TYPE {
+        COMMENT
+        POST
+    }
+
+    enum ROLE {
+        ADMIN
+        MODERATOR
+        USER
+    }
+
+    enum CAUSE {
+        IRRELEVANT
+        OBSCENE
+        ILLEGAL
+        INSULTING
+    }
+
+    user -up- view
+    user -up- comment
+    user -up- comment_like
+    user -up- report
+    user -up- post
+    report -up- comment
+    report -up- post
+    report -right- response
+    user -left- response
+    comment_like -up- comment
+    comment -left- post
+    view -right- post
+    post -up- post_category
+    post_category -left- category
+}
+
+@enduml

@@ -1,0 +1,27 @@
+{{define "title"}} | Admin{{end}}
+
+{{define "content"}}
+{{range .PostsList}}
+    <article class="list" style="width: 50%;">
+        <div class="row center">
+            <img class="avatar big mr-1" src="{{ .ImageURL }}" alt="">
+            <div class="col ml-1 new">
+                <a class="black wfull" href="/posts/{{ .Slug }}">
+                <h2>
+                    {{ .Title }}
+                </h2>
+                </a>
+                <div class="row">
+                    <span>{{ .AuthorName }}</span>
+                    <span>{{ .LastEditionDate }}</span>
+                    <span>{{ .NumberOfComments }} replies</span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <a href="/publish/{{.Slug}}" class="btn alt mr-1">Validate</a>
+            <a href="/delete-post/{{.ID}}" class="btn red">Delete</a>
+        </div>
+    </article>
+{{end}}
+{{end}}

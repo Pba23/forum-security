@@ -1,0 +1,100 @@
+{{define "title"}} | Admin{{end}}
+
+{{define "content"}}
+<h2>Reports</h2>
+{{range $index, $report := .Reports}}
+{{if eq $report.Reported true}}
+<div class="container">
+    <div class="img">
+        <img src="{{$report.ImageURL}}" alt="image">
+    </div>
+    <div class="content">
+        <div class="Username">
+            {{$report.ReportedName}}
+        </div>
+        <div class="Type">
+            {{$report.Type}}
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="toggleButton" data-index="{{$index}}">Repondre</button>
+        <a href="/delete-report/{{$report.ID}}"><button>Supprimer</button></a>
+    </div>
+</div>
+<div class="col block mb-1 wfull" id="elementAafficher{{$index}}" style="width: 40%; display: none;">
+    <label>Report Cause :</label>
+    <p></br>{{$report.Cause}}</p>
+    <form action="/response/{{$report.ID}}" method="POST" class="wfull m-0">
+        <textarea placeholder="Type your response here..." name="text" id="" cols="30" rows="5" required></textarea>
+        <div class="row center mb-0">
+            <button type="submit">send response</button>
+        </div>
+    </form>
+    </div>
+{{end}}
+{{end}}
+<style>
+    .container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        border: 1px rgb(197, 197, 197) solid;
+        margin-top: 55px;
+        width: 700px;
+        align-items: center;
+        height: 100px;
+        padding: 10px;
+        border-radius: 30px ;
+    }
+    
+    img {
+        width: 60px;
+        height: 60px;
+        border-radius: 30px;
+    }
+    .Type {
+        font-size: 15px;
+        font-weight: bold;
+        color: rgb(179, 15, 9);
+    }
+    .img {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+    }
+    .content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        align-items: center;
+    }
+    button {
+        margin: 10px;
+    }
+    .content .Username {
+        font-size: 25px;
+        font-weight: bold;
+        color: rgb(9, 96, 179);
+    }
+</style>
+<script>
+    // Récupérez tous les boutons de classe "toggleButton"
+    var toggleButtons = document.querySelectorAll(".toggleButton");
+
+    // Ajoutez un écouteur d'événements à chaque bouton
+    toggleButtons.forEach(function(button) {
+        button.addEventListener("click", function() {
+            var index = button.getAttribute("data-index");
+            var elementAafficher = document.getElementById("elementAafficher" + index);
+
+            if (elementAafficher.style.display === "none") {
+                elementAafficher.style.display = "block"; // Affiche l'élément
+            } else {
+                elementAafficher.style.display = "none"; // Masque l'élément
+            }
+        });
+    });
+</script>
+{{end}}

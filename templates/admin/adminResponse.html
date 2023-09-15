@@ -1,0 +1,68 @@
+{{define "title"}} | Admin{{end}}
+
+{{define "content"}}
+{{if .IsLoggedIn}}
+<div class="AllResponse">
+{{ range $index, $value := .AllResponse }}
+    <div class="Response">
+        <div class="image">
+            <img src="{{$.ImageUrl}}" alt="image">
+        </div>
+        <div class="content">
+            <div class="PostName">{{ index $.AllSlug $index }} </div>
+            <div class="AdminResponse">{{ $value.Text }} </div>
+        </div>
+        <div class="time" >
+            {{ $value.ModifiedDate }}
+        </div>
+    </div>
+    {{end}}
+</div>
+    <style>
+        .PostName {
+            font-size: larger;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: rgb(3, 104, 145);
+        }
+        img {
+        width: 60px;
+        height: 60px;
+        border-radius: 30px;
+        margin-right: 10px;
+    }
+        .AllResponse {
+            display: flex;
+            flex-direction: column ;
+            margin-top: 10%;
+        }
+        .AdminResponse {
+            font-size: large;
+            font-weight: lighter;
+        }
+        .Response {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin: 10px;
+            width: 650px;
+            height: 150px;
+            padding: 10px;
+        }
+        .content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            padding: 10px;
+            background-color: aliceblue;
+            border-radius: 10px;
+        }
+        .time {
+            margin-left: 5px;
+        }
+    </style>
+
+{{end}}
+{{end}}

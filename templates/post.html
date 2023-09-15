@@ -1,0 +1,254 @@
+{{define "title"}} | {{ .Post.Title }}{{end}}
+
+{{define "content"}}
+<main>
+    <section class="row">
+        <section class="w3-5">
+            <article class="post">
+                <img src="{{ .Post.ImageURL }}" alt="">
+                <h1>{{ .Post.Title }}</h1>
+                <div class="row mb-1">
+                    {{ range .CategoriesPost }}
+                    <a href="/category/{{.Name}}">#{{ .Name }}</a>
+                    {{ end }}
+                </div>
+                <p class="black mb-1">
+                    {{ .Post.Description }}
+                </p>
+                <div class="row">
+                    <p>Published {{.Post.ModifiedDate}}</p>
+                </div>
+            </article>
+        </section>
+        <section class="w2-5 col">
+            <div class="row mb-1">
+                <img src="{{ .UserPoster.AvatarURL }}" alt="" class="avatar big">
+                <div class="col ml-1">
+                    <h3>{{ .UserPoster.Username }}</h3>
+                    {{ if eq .UserPoster.IsLoggedIn "Online" }}
+                    <span class="green">{{ .UserPoster.IsLoggedIn }}</span>
+                    {{ else }}
+                    <span class="red">{{ .UserPoster.IsLoggedIn }}</span>
+                    {{ end }}
+                    <p>Published {{.Post.ModifiedDate}}</p>
+                </div>
+            </div>
+            <div class="row center mb-1">
+                <p class="mr-1">
+                    {{ .NbrLike }}
+                    {{if .IsLoggedIn}}
+                    <a href="/like/{{ .Post.Slug }}">
+                        ❤️
+                    </a>
+                    {{else}}
+                        <a href="/sign-in-page">❤️</a>
+                    {{end}}
+                </p>
+                <p class="mr-1">
+                    {{ .NbrDislike }}
+                    {{if .IsLoggedIn}}
+                    <a href="/dislike/{{ .Post.Slug }}">
+                        👎
+                    </a>
+                    {{else}}
+                        <a href="/sign-in-page">👎</a>
+                    {{end}}
+                </p>
+                
+                <p>
+                    {{ .NbrBookmarks }}
+                    {{if .IsLoggedIn }}
+                        <a href="/bookmark/{{.Post.Slug}}">
+                            
+                            🔖 
+                        </a>
+                    {{else}}
+                    <a href="/sign-in-page">
+                        🔖
+                    </a>
+                    {{end}}
+                </p>
+            </div>
+            {{if .IsLoggedIn}}
+            <div class="col block mb-1 wfull">
+                <p id="replyMessage" style="display: none;"></p>
+                <form action="/comment/{{.Post.ID}}" method="POST" class="wfull m-0">
+                    <input type="hidden" name="parentID" id="parentID">
+                    <textarea placeholder="Type your comment here..." name="text" id="" cols="30" rows="5" required></textarea>
+                    <div class="row center mb-0">
+                        <button>Comment</button>
+                        <a id="resetBtn" class="black ml-1" href="" style="display: none;" onclick="(e) => reset(e)">Reset reply</a>
+                        <p class="mb-0 ml-1">Use @ to mention other users</p>
+                    </div>
+                </form>
+            </div>
+            {{end}}
+            <div class="col block mt-1 wfull">
+                <h2 class="mb-1">{{ .NbrComment }} Comments</h2>
+                {{range .Comments}}
+                <div class="row wfull">
+                    {{.Depth}}
+                    {{if eq .Index 0}}
+                    <div class="col mb-1">
+                        {{else}}
+                        <div class="col mb-1 pl-1 border-left">
+                            {{end}}
+                            <div class="row center">
+                                <img class="avatar small mr-1" src="{{.AuthorAvatar}}" alt="">
+                                <p id="username-{{.ID}}" class="mr-1">{{.AuthorName}}</p>
+                            </div>
+                            <p class="black">
+                                {{ .Text }}
+                            </p>
+                            <div class="row center">
+                                <p class="mb-0">
+                                    {{if $.IsLoggedIn}}
+                                    {{ .NbrLikesComment }}
+                                    <a href="/like-comment/{{.ID}}">
+                                        ❤️
+                                    </a>
+                                    {{ .NbrDislikesComment }}
+                                    <a href="/dislike-comment/{{.ID}}">
+                                        👎
+                                    </a>
+                                    {{ else}}
+                                    {{ .NbrLikesComment }}
+                                    <a href="/sign-in-page">
+                                        ❤️
+                                    </a>
+                                    {{ .NbrDislikesComment }}
+                                    <a href="/sign-in-page">
+                                        👎
+                                    </a>
+                                    {{end}}
+                                </p>
+                                {{if $.IsLoggedIn}}
+                                <a class="ml-1 mr-1" href="" onclick="reply(event)" id="reply-{{.ID}}">Reply</a>
+                                {{else}}
+                                <a class="ml-1 mr-1" href="/sign-in-page">Reply</a>
+                                {{end}}
+                                <p class="mb-0">{{.LastModifiedDate}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+        </section>
+    </section>
+    
+    <script defer>
+        const resetBtn = document.getElementById("resetBtn");
+        const parentIDInput = document.getElementById("parentID");
+        const replyMessageSection = document.getElementById("replyMessage");
+
+        function reply(event) {
+            event.preventDefault();
+            console.log(event.srcElement.getAttribute("id"));
+            console.log(parentIDInput);
+            parentID = event.srcElement.getAttribute("id").substring(6);
+            replyTo = document.querySelector("#username-" + parentID).textContent
+            parentIDInput.value = parentID;
+            replyMessageSection.style.display = "block";
+            resetBtn.style.display = "block";
+            replyMessageSection.textContent = "You replying to " + replyTo;
+        }
+
+        function reset(event) {
+            event.preventDefault();
+            resetBtn.style.display = "none";
+            replyMessageSection.style.display = "none";
+            replyMessageSection.textContent = "";
+            parentIDInput.value = "";
+        }
+
+    </script>
+</main>
+
+{{ if .Reported }}
+<p>This Post is already Reported to the admin</p>
+{{else}}
+    {{ if eq .CurrentUser.Role 1 }}
+    {{if .Post.Validate}}
+<div class="reportButtons"> 
+    <button id="ouvrirFormulaire" class="report">Report</button>
+    <a href="/delete-Postt/{{ .Post.ID}}"><button class="Delete">Delete</button></a>
+</div>
+    {{end}}
+<div id="formulaireContainer" class="caché">
+    <form method="post" action="/reportpost/{{.Post.ID}}">
+        <!-- Vos champs de formulaire ici -->
+        <label for="cause">Why do you report this post :</label>
+        <input type="text-area"  id="cause" name="cause">
+        <br>
+        <label for="type">Type :</label>
+        <select name="type" id="type">
+            <option value="Nude">Nude</option>
+            <option value="Harassment">Harassment</option>
+            <option value="Misoginy">Misoginy</option>
+            <option value="Violence">Promote Violence</option>
+        </select>
+        <br>
+        <input type="submit" value="Report">
+    </form>
+</div>
+{{end}}
+{{end}}
+{{if .IsLoggedIn}}
+{{if eq .CurrentUser.Role 0 }}
+<div>
+    <a href="/delete-Postt/{{ .Post.ID}}"><button class="Delete">Delete</button></a>
+</div>
+{{ end }}
+{{ end }}
+<style>
+    select {
+        width: 100px;
+        height: 40px;
+        font-size: 15px;
+        border: 2px solid black;
+        border-radius: 10px;
+        background-color: aliceblue;
+    }
+    input {
+        cursor: pointer;
+    }
+    input[type="submit"]:hover {
+        background-color: brown;
+    }
+    label {
+        font-size: 15px;
+    }
+    .caché {
+        display: none;
+    }
+    .reportButtons {
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+    .report, .Delete {
+        margin: 15px;
+        width: 100px;
+        height: 50px;
+        background-color: brown;
+        font-size: 20px;
+    }
+    .report:hover {
+        background-color: rgb(114, 112, 112);
+    }
+    .Delete:hover {
+        background-color: rgb(114, 111, 111);
+    }
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const boutonOuvrirFormulaire = document.getElementById("ouvrirFormulaire");
+    const formulaireContainer = document.getElementById("formulaireContainer");
+
+    boutonOuvrirFormulaire.addEventListener("click", function () {
+        formulaireContainer.style.display = "block"; // Afficher le formulaire
+    });
+});
+</script>
+
+{{end}}

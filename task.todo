@@ -1,0 +1,55 @@
+### Todo List for "forum" Project:
+1.  [x] Set up the project structure and create necessary folders (models, handlers, etc.).
+2.  [x] Implement SQLite database functionality using the "sqlite3" package.
+3.  [x] Implement all models.
+4.  [x] Implement user registration and login functionality.
+   -    [x] Validate and store user credentials in the database.
+   -    [x] Implement login sessions using cookies with expiration dates.
+   -    [x] Optionally, use UUID for session management (Bonus task).
+   -    [x] Implement logout
+5.  [x] Implement post and comment creation functionality.
+   -    [x] Associate categories with posts.
+   -    [x] Allow non-registered users to view posts and comments.
+6.  [x] Implement liking and disliking of posts and comments.
+   -    [x] Update the number of likes and dislikes for each post and comment.
+7.  [x] Implement the filtering mechanism for posts:
+   -    [x] Filtering by categories.
+   -    [x] Filtering by created posts (for registered users).
+   -    [x] Filtering by liked posts (for registered users).
+8.  [x] Dockerize the forum application.
+9.  [ ] Handle website errors and HTTP status.
+10. [ ] Write unit test files for testing the functionality of the application.
+
+### Todo List for "authentication" Project:
+1.  [x] Implement authentication using at least two authentication providers (e.g., Google, GitHub).
+2.  [x] Set up authentication routes for registering and logging in.
+3.  [x] Implement OAuth2.0 authentication flow for each authentication provider.
+4.  [x] Handle user registration using the chosen authentication providers.
+5.  [x] Set up sessions and cookies for authenticated users.
+6.  [x] Implement logout functionality to end user sessions.
+
+### Todo List for "forum-image-upload" Project:
+1.  [x] Allow registered users to create posts with images.
+2.  [x] Allow users to have profile's avatar.
+3.  [x] Validate image types (JPEG, PNG, GIF) and size (maximum 20 MB).
+4.  [x] Handle image upload and storage on the server.
+5.  [x] Display the associated image when viewing the post.
+
+### Todo List for "security" Project:
+1.  [x] Implement HTTPS protocol using an SSL certificate.
+   -    [x] Generate SSL certificates or use Certificate Authorities (CA's).
+   -    [x] Set up encrypted connections.
+2.  [x] Implement Rate Limiting to prevent abuse and DoS attacks.
+3.  [x] Encrypt client passwords and optionally encrypt the database.
+4.  [ ] Test sessions and cookies for security vulnerabilities.
+
+### Todo List for "forum-moderation" Project:
+1.  [ ] Implement a moderation system based on access levels.
+2.  [ ] Define user types (Guests, Users, Moderators, Administrators).
+3.  [ ] Implement functions for each user type, such as post/comment deletion, reporting, and category management.
+4.  [ ] Allow users to request the Moderator role from an Admin.
+
+### Todo List for "forum-advanced-features" Project:
+1.  [ ] Implement notifications for users when their posts are liked/disliked or commented.
+2.  [ ] Create an activity page to track user activity (created posts, likes, dislikes, comments).
+3.  [ ] Implement Edit/Remove functionality for posts and comments.
