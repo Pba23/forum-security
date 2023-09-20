@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"forum/data/models"
 	"forum/handler"
 	"forum/handler/auth"
@@ -70,7 +69,7 @@ func main() {
 	http.Handle("/response/", rateLimiter.Wrap("api", handler.Response))
 	http.Handle("/delete-report/", rateLimiter.Wrap("api", handler.DeleteReport))
 
-	httpsServer := http.Server{
+	/* httpsServer := http.Server{
 		Addr: PORT,
 		TLSConfig: &tls.Config{
 			MinVersion:               tls.VersionTLS12, // Minimum TLS version supported
@@ -81,13 +80,13 @@ func main() {
 				// Add more cipher suites as needed
 			},
 		},
-	}
+	} */
 
 	go models.DeleteExpiredSessions()
 
 	log.Print("Server started and running on ")
 	log.Println(ADDRESS + PORT)
-	if err := httpsServer.ListenAndServeTLS(os.Getenv("CERT_PATH"), os.Getenv("KEY_PATH")); err != nil {
+	if err := http.ListenAndServe(PORT, nil); err != nil {
 		log.Fatal(err)
 	}
 }

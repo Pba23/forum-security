@@ -39,7 +39,7 @@ func HandleGithubLoginHandler(w http.ResponseWriter, r *http.Request) {
 	redirectURL := fmt.Sprintf(
 		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s",
 		githubClientID,
-		"https://localhost:8080/github-callback")
+		"http://localhost:8080/github-callback")
 
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
@@ -161,8 +161,8 @@ func HandleGithubCallback(w http.ResponseWriter, r *http.Request) {
 	user.Email = userPrimaryEmail
 	user.Role = models.RoleUser
 
-	if _, exist := models.UserRepo.IsExistedSignIn(user.Username); !exist {
-		err := models.UserRepo.CreateUser(&user)
+	if _, exist := models.UserRepo.IsExistedByID(user.ID); !exist {
+		err := models.UserRepo.CreateGoogleUser(&user)
 		if err != nil {
 			log.Fatalf("❌ Failed to created account %v", err)
 		}

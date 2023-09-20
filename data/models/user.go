@@ -58,6 +58,13 @@ func (ur *UserRepository) CreateUser(user *User) error {
 	return err
 }
 
+// Create a new user in the database
+func (ur *UserRepository) CreateGoogleUser(user *User) error {
+	_, err := ur.db.Exec("INSERT INTO user (id, username, email, password, avatarURL, role) VALUES (?, ?, ?, ?, ?, ?)",
+		user.ID, user.Username, user.Email, user.Password, user.AvatarURL, user.Role)
+	return err
+}
+
 // Get a user by ID from the database
 func (ur *UserRepository) GetUserByID(userID string) (*User, error) {
 	var user User
