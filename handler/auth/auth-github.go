@@ -143,22 +143,20 @@ func HandleGithubCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userPrimaryEmail string
-	for _, email := range emails {
-		if email.Primary {
-			userPrimaryEmail = email.Email
-			break
-		}
-	}
-
-	/////////////////
+	// var userPrimaryEmail string
+	// for _, email := range emails {
+	// 	if email.Primary {
+	// 		userPrimaryEmail = email.Email
+	// 		break
+	// 	}
+	// }
 
 	user := models.User{}
 
 	user.ID = GithubUser.ID
 	user.Username = GithubUser.Name
 	user.AvatarURL = GithubUser.AvatarURL
-	user.Email = userPrimaryEmail
+	//user.Email = userPrimaryEmail
 	user.Role = models.RoleUser
 
 	if _, exist := models.UserRepo.IsExistedByID(user.ID); !exist {
