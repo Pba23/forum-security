@@ -124,31 +124,31 @@ type Token struct {
 	AccessToken string `json:"access_token"`
 }
 
-func getGoogleEmail(w http.ResponseWriter, r *http.Request, token string)  {
+func getGoogleEmail(w http.ResponseWriter, r *http.Request, token string) {
 	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v3/userinfo", nil)
-    if err != nil {
-        return 
-    }
+	if err != nil {
+		return
+	}
 
-    req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Authorization", "Bearer "+token)
 
-    client := &http.Client{}
-    respi, err := client.Do(req)
-    if err != nil {
-        return
-    }
-    defer respi.Body.Close()
+	client := &http.Client{}
+	respi, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer respi.Body.Close()
 
-    var userInfo map[string]interface{}
-    if err := json.NewDecoder(respi.Body).Decode(&userInfo); err != nil {
-        return
-    }
+	var userInfo map[string]interface{}
+	if err := json.NewDecoder(respi.Body).Decode(&userInfo); err != nil {
+		return
+	}
 
 	fmt.Println("userInfo : ", userInfo)
 
-    email, ok := userInfo["email"].(string)
-    if !ok {
-        return
-    }
+	email, ok := userInfo["email"].(string)
+	if !ok {
+		return
+	}
 	fmt.Println("email : ", email)
 }

@@ -379,8 +379,8 @@
                 if (file.size > maxFileSize) {
                     errorContainer.textContent = 'Erreur : Le fichier est trop volumineux (maximum 20 Mo)';
                     return; // Do not proceed with displaying the file
-                } else if (extension!='gif' || extension!="png" || extension!="jpeg") {
-                    errorContainer.textContent = 'Erreur : File type NOt supported';
+                } else if (extension.toLowerCase() != "gif" && extension.toLowerCase() != "png" && extension.toLowerCase() != "jpg" && extension.toLowerCase() != "jpeg" && extension.toLowerCase() != "svg") {
+                    errorContainer.textContent = 'Erreur : File type not supported';
                     return;
                 }
 
