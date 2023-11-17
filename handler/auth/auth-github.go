@@ -9,173 +9,251 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
+// getGithubClientID retrieves the GitHub client ID from the environment variable.
 func getGithubClientID() string {
-
-	githubClientID, exists := os.LookupEnv("GITHUB_CLIENT_ID")
+	clientID, exists := os.LookupEnv("GITHUB_CLIENT_ID")
 	if !exists {
-		log.Fatal("Github Client ID not defined in .env file")
+		log.Fatal("GitHub Client ID not defined in .env file")
 	}
-
-	return githubClientID
+	return clientID
 }
 
+// getGithubClientSecret retrieves the GitHub client secret from the environment variable.
 func getGithubClientSecret() string {
-
-	githubClientSecret, exists := os.LookupEnv("GITHUB_CLIENT_SECRET")
+	clientSecret, exists := os.LookupEnv("GITHUB_CLIENT_SECRET")
 	if !exists {
-		log.Fatal("Github Client ID not defined in .env file")
+		log.Fatal("GitHub Client Secret not defined in .env file")
 	}
-
-	return githubClientSecret
+	return clientSecret
 }
 
+// HandleGithubLoginHandler handles the GitHub login redirect.
 func HandleGithubLoginHandler(w http.ResponseWriter, r *http.Request) {
-	// Get the environment variable
-	githubClientID := getGithubClientID()
-
-	// Create the dynamic redirect URL for login
-	redirectURL := fmt.Sprintf(
-		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s",
-		githubClientID,
-		"http://localhost:8080/github-callback")
-
+	clientID := getGithubClientID()
+	redirectURL := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s", clientID, "http://localhost:8080/github-callback")
+	log.Printf("Redirection to %s", redirectURL)
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
 
-func getGithubAccessToken(w http.ResponseWriter, r *http.Request, code string) string {
+// getGithubAccessToken retrieves the GitHub access token using the provided code.
+func getGithubAccessToken(w http.ResponseWriter, r *http.Request, code string) (string, error) {
 	clientID := getGithubClientID()
 	clientSecret := getGithubClientSecret()
-	// Set us the request body as JSON
-	requestBodyMap := map[string]string{
+
+	// Prepare request body as JSON
+	requestBody := map[string]string{
 		"client_id":     clientID,
 		"client_secret": clientSecret,
 		"code":          code,
 	}
-	requestJSON, _ := json.Marshal(requestBodyMap)
-	// POST request to set URL
-	req, reqerr := http.NewRequest(
-		"POST",
-		"https://github.com/login/oauth/access_token",
-		bytes.NewBuffer(requestJSON))
-	if reqerr != nil {
-		log.Panic("Request creation failed")
+	requestJSON, _ := json.Marshal(requestBody)
+
+	// Make a POST request to obtain the access token
+	resp, err := http.Post("https://github.com/login/oauth/access_token", "application/json", bytes.NewBuffer(requestJSON))
+	if err != nil {
+		log.Printf("Request failed: %v", resp)
+		return "", err
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	// Get the response
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
+	defer resp.Body.Close()
+
+	// Read the response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read response body: %v", respBody)
+		return "", err
 	}
-	// Response body converted to stringified JSON
-	respbody, _ := io.ReadAll(resp.Body)
-	// Represents the response received from Github
-	type githubAccessTokenResponse struct {
-		AccessToken string `json:"access_token"`
-		TokenType   string `json:"token_type"`
-		Scope       string `json:"scope"`
+
+	// Parse the GitHub access token from the response
+	accessToken := parseAccessToken(string(respBody))
+	if accessToken == "" {
+		log.Printf("Failed to parse response body: %s", string(respBody))
+		return "", err
 	}
-	// Convert stringified JSON to a struct object of type githubAccessTokenResponse
-	var ghresp githubAccessTokenResponse
-	json.Unmarshal(respbody, &ghresp)
-	// Return the access token (as the rest of the
-	// details are relatively unnecessary for us)
-	return ghresp.AccessToken
+
+	return accessToken, nil
 }
 
+// parseAccessToken parses the access token from the GitHub response.
+func parseAccessToken(response string) string {
+	// Split the response string by '&' to get key-value pairs
+	pairs := strings.Split(response, "&")
+
+	// Iterate through key-value pairs to find the access token
+	for _, pair := range pairs {
+		if strings.HasPrefix(pair, "access_token=") {
+			// Extract the access token value
+			return strings.TrimPrefix(pair, "access_token=")
+		}
+	}
+
+	// Access token not found
+	return ""
+}
+
+// HandleGithubCallback handles the callback from GitHub after authentication.
 func HandleGithubCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.FormValue("code")
-
-	githubAccessToken := getGithubAccessToken(w, r, code)
-
-	// Get request to a set URL
-	req, reqerr := http.NewRequest(
-		"GET",
-		"https://api.github.com/user",
-		nil)
-
-	if reqerr != nil {
-		log.Panic("API Request creation failed")
+	if code == "" {
+		log.Printf("No code provided")
 	}
 
-	// Set the Authorization header before sending the request
-	// Authorization: token XXXXXXXXXXXXXXXXXXXXXXXXXXX
-	authorizationHeaderValue := fmt.Sprintf("token %s", githubAccessToken)
-	req.Header.Set("Authorization", authorizationHeaderValue)
+	// Obtain the GitHub access token
+	githubAccessToken, err := getGithubAccessToken(w, r, code)
+	if err != nil {
+		log.Printf("Failed to obtain GitHub access token: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Make a request to get user information from GitHub
+	githubUser, err := getGithubUser(githubAccessToken)
+	if err != nil {
+		log.Printf("Failed to get GitHub user information: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Make a request to get user emails from GitHub
+	emails, err := getGithubUserEmails(githubAccessToken)
+	if err != nil {
+		log.Printf("Failed to get GitHub user emails: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Process GitHub user information and emails
+	user := processGithubUserInfo(githubUser, emails)
+
+	// Check if the user already exists
+	if _, exist := models.UserRepo.IsExistedByID(user.ID); !exist {
+		// Create a new user account
+		err := models.UserRepo.CreateUser(&user)
+		if err != nil {
+			log.Fatalf("Failed to create account: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		// Create a new session token
+		models.NewSessionToken(w, user.ID, user.Username)
+
+		// Redirect to the home page
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		log.Println("Account created successfully")
+	} else {
+		// User already exists, create a session token and redirect
+		models.NewSessionToken(w, user.ID, user.Username)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		log.Println("User already exists")
+	}
+}
+
+// getGithubUser retrieves user information from GitHub.
+func getGithubUser(accessToken string) (GithubUser, error) {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
+	if err != nil {
+		return GithubUser{}, err
+	}
+
+	// Set the Authorization header with the access token
+	req.Header.Add("Authorization", "Bearer "+accessToken)
 
 	// Make the request
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
+	resp, err := client.Do(req)
+	if err != nil {
+		return GithubUser{}, err
 	}
+	defer resp.Body.Close()
 
 	// Read the response as a byte slice
-	respbody, _ := io.ReadAll(resp.Body)
-
-	var GithubUser GithubUser
-
-	json.Unmarshal(respbody, &GithubUser)
-
-	//////////////////////////////
-
-	client2 := &http.Client{}
-
-	req2, err := http.NewRequest("GET", "https://api.github.com/user/emails", nil)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return
+		return GithubUser{}, err
 	}
 
-	req2.Header.Add("Authorization", "Bearer "+githubAccessToken)
-	resp2, err := client2.Do(req2)
+	// Parse the GitHub user information response
+	var githubUser GithubUser
+	err = json.Unmarshal(respBody, &githubUser)
 	if err != nil {
-		return
+		return GithubUser{}, err
 	}
-	defer resp2.Body.Close()
 
+	return githubUser, nil
+}
+
+// getGithubUserEmails retrieves user emails from GitHub.
+func getGithubUserEmails(accessToken string) ([]struct {
+	Email    string `json:"email"`
+	Primary  bool   `json:"primary"`
+	Verified bool   `json:"verified"`
+}, error) {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("GET", "https://api.github.com/user/emails", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the Authorization header with the access token
+	req.Header.Add("Authorization", "Bearer "+accessToken)
+
+	// Make the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Read the response as a byte slice
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the GitHub user emails response
 	var emails []struct {
 		Email    string `json:"email"`
 		Primary  bool   `json:"primary"`
 		Verified bool   `json:"verified"`
 	}
-	if err := json.NewDecoder(resp2.Body).Decode(&emails); err != nil {
-		return
+	err = json.Unmarshal(respBody, &emails)
+	if err != nil {
+		return nil, err
 	}
 
-	// var userPrimaryEmail string
-	// for _, email := range emails {
-	// 	if email.Primary {
-	// 		userPrimaryEmail = email.Email
-	// 		break
-	// 	}
-	// }
-
-	user := models.User{}
-
-	user.ID = GithubUser.ID
-	user.Username = GithubUser.Name
-	user.AvatarURL = GithubUser.AvatarURL
-	//user.Email = userPrimaryEmail
-	user.Role = models.RoleUser
-
-	if _, exist := models.UserRepo.IsExistedByID(user.ID); !exist {
-		err := models.UserRepo.CreateGoogleUser(&user)
-		if err != nil {
-			log.Fatalf("❌ Failed to created account %v", err)
-		}
-
-		models.NewSessionToken(w, user.ID, user.Username)
-
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		log.Println("✅ Account created with success")
-	} else {
-		models.NewSessionToken(w, user.ID, user.Username)
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		fmt.Println("❌ User already exist")
-	}
+	return emails, nil
 }
 
+// processGithubUserInfo processes GitHub user information and returns a User struct.
+func processGithubUserInfo(githubUser GithubUser, emails []struct {
+	Email    string `json:"email"`
+	Primary  bool   `json:"primary"`
+	Verified bool   `json:"verified"`
+}) models.User {
+	user := models.User{
+		ID:        githubUser.ID,
+		Username:  githubUser.Name,
+		AvatarURL: githubUser.AvatarURL,
+		Role:      models.RoleUser,
+	}
+
+	// Extract the primary email (if available)
+	for _, email := range emails {
+		if email.Primary {
+			user.Email = email.Email
+			break
+		}
+	}
+
+	return user
+}
+
+// GithubUser represents the GitHub user structure.
 type GithubUser struct {
 	Login      string `json:"login"`
 	ID         string `json:"node_id"`
