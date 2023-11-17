@@ -12,15 +12,6 @@ import (
 	"strings"
 )
 
-// getGithubClientID retrieves the GitHub client ID from the environment variable.
-func getGithubClientID() string {
-	clientID, exists := os.LookupEnv("GITHUB_CLIENT_ID")
-	if !exists {
-		log.Fatal("GitHub Client ID not defined in .env file")
-	}
-	return clientID
-}
-
 // getGithubClientSecret retrieves the GitHub client secret from the environment variable.
 func getGithubClientSecret() string {
 	clientSecret, exists := os.LookupEnv("GITHUB_CLIENT_SECRET")
@@ -28,6 +19,15 @@ func getGithubClientSecret() string {
 		log.Fatal("GitHub Client Secret not defined in .env file")
 	}
 	return clientSecret
+}
+
+// getGithubClientID retrieves the GitHub client ID from the environment variable.
+func getGithubClientID() string {
+	clientID, exists := os.LookupEnv("GITHUB_CLIENT_ID")
+	if !exists {
+		log.Fatal("GitHub Client ID not defined in .env file")
+	}
+	return clientID
 }
 
 // HandleGithubLoginHandler handles the GitHub login redirect.
@@ -127,28 +127,20 @@ func HandleGithubCallback(w http.ResponseWriter, r *http.Request) {
 	// Process GitHub user information and emails
 	user := processGithubUserInfo(githubUser, emails)
 
-	// Check if the user already exists
-	if _, exist := models.UserRepo.IsExistedByID(user.ID); !exist {
-		// Create a new user account
-		err := models.UserRepo.CreateUser(&user)
-		if err != nil {
-			log.Fatalf("Failed to create account: %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-		// Create a new session token
-		models.NewSessionToken(w, user.ID, user.Username)
-
-		// Redirect to the home page
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		log.Println("Account created successfully")
-	} else {
-		// User already exists, create a session token and redirect
-		models.NewSessionToken(w, user.ID, user.Username)
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		log.Println("User already exists")
+	// Create a new user account
+	err = models.UserRepo.CreateGithubUser(&user)
+	if err != nil {
+		log.Fatalf("🚨 Failed to create account: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+
+	// Create a new session token
+	models.NewSessionToken(w, user.ID, user.Username)
+
+	// Redirect to the home page
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+	log.Println("✅ Account created successfully")
 }
 
 // getGithubUser retrieves user information from GitHub.
@@ -236,7 +228,6 @@ func processGithubUserInfo(githubUser GithubUser, emails []struct {
 	Verified bool   `json:"verified"`
 }) models.User {
 	user := models.User{
-		ID:        githubUser.ID,
 		Username:  githubUser.Name,
 		AvatarURL: githubUser.AvatarURL,
 		Role:      models.RoleUser,

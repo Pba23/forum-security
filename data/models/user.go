@@ -58,6 +58,31 @@ func (ur *UserRepository) CreateUser(user *User) error {
 	return err
 }
 
+// Creates a new user in the database or updates the existing one.
+func (ur *UserRepository) CreateGithubUser(user *User) error {
+	// Check if the user already exists in the database
+	existingUser, err := ur.GetUserByEmail(user.Email)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	if existingUser != nil {
+		// User already exists, update the user details (if needed)
+		// For example, you might want to update the username or avatarURL
+		user.ID = existingUser.ID
+		existingUser.Username = user.Username
+		existingUser.AvatarURL = user.AvatarURL
+
+		// Update the existing user in the database
+		_, err := ur.db.Exec("UPDATE user SET username = ?, avatarURL = ? WHERE id = ?",
+			existingUser.Username, existingUser.AvatarURL, existingUser.ID)
+		return err
+	}
+
+	// User doesn't exist, create a new user
+	return ur.CreateUser(user)
+}
+
 // Create a new user in the database
 func (ur *UserRepository) CreateGoogleUser(user *User) error {
 	_, err := ur.db.Exec("INSERT INTO user (id, username, email, password, avatarURL, role) VALUES (?, ?, ?, ?, ?, ?)",
