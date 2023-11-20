@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"forum/data/models"
 	"forum/lib"
 	"log"
@@ -222,6 +223,8 @@ func EditPost(res http.ResponseWriter, req *http.Request) {
 
 			if isEdited {
 				post.IsEdited = true
+				post.Validate = true
+				fmt.Println(post)
 				post.ModifiedDate = time.Now().Format("2006-01-02 15:04:05")
 				err = models.PostRepo.UpdatePost(post)
 				if err != nil {
