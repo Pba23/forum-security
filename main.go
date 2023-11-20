@@ -72,6 +72,9 @@ func main() {
 
 	httpsServer := http.Server{
 		Addr: PORT,
+		IdleTimeout: 60 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout: 10 * time.Second,
 		TLSConfig: &tls.Config{
 			MinVersion:               tls.VersionTLS12, // Minimum TLS version supported
 			PreferServerCipherSuites: true,             // Prefer the server's cipher suite order
